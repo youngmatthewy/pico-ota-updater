@@ -41,15 +41,27 @@ updater = OTAUpdater(config)
 
 # If the prior update never reported a successful application boot,
 # restore the previous application before doing anything else.
-updater.recover_if_needed()
+boot_state = updater.recover_if_needed()
 
-try:
-    connect_wifi()
-    if updater.check_and_install():
-        time.sleep_ms(500)
-        updater.reset()
-except Exception as exc:
-    # A network or GitHub outage must not stop the local application.
-    print("OTA check skipped:", exc)
+if boot_state == "normal":
+    try:
+        connect_wifi()
+
+        if updater.check_and_install():
+            time.sleep_ms(500)
+            updater.reset()
+
+    except Exception as exc:
+        print("OTA check skipped:", exc)
+
+elif boot_state == "trial":
+    # Do not check GitHub during a trial boot.
+    # main.py must run and confirm the update.
+    print("OTA: update check deferred during trial boot")
+
+elif boot_state == "rolled_back":
+    # Do not immediately perform another update after rollback.
+    # Run the restored application first.
+    print("OTA: update check deferred after rollback")
 
 gc.collect()

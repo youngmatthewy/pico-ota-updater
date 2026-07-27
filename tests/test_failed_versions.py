@@ -54,7 +54,7 @@ def test_rollback_records_failed_version(tmp_path, monkeypatch):
         encoding="utf-8",
     )
 
-    assert updater.recover_if_needed() is True
+    assert updater.recover_if_needed() == "rolled_back"
     assert Path("main.py").read_text(encoding="utf-8") == "working"
 
     failed = json.loads(

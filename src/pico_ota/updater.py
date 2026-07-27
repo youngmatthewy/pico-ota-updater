@@ -155,19 +155,21 @@ class OTAUpdater:
 
     def recover_if_needed(self):
         pending = read_json(self.config.pending_marker, default=None)
+
         if not pending:
-            return False
+            return "normal"
 
         phase = pending.get("phase", "installed")
 
-        # The first reboot after activation is the new application's trial boot.
-        # Mark it before main.py starts. If the device resets again without
-        # mark_boot_successful(), the next boot restores the backups.
         if phase == "installed":
             pending["phase"] = "booting"
             write_json_atomic(self.config.pending_marker, pending)
-            self.log("OTA: starting trial boot for version %s" % pending.get("version"))
-            return False
+
+            self.log(
+                "OTA: starting trial boot for version %s"
+                % pending.get("version")
+            )
+            return "trial"
 
         files = pending.get("files", [])
         failed_version = pending.get("version")
@@ -179,7 +181,11 @@ class OTAUpdater:
             self.mark_version_failed(failed_version)
 
         remove_if_exists(self.config.pending_marker)
-        return True
+
+        self.log(
+            "OTA: rollback complete; restored previous application"
+        )
+        return "rolled_back"
 
     def mark_boot_successful(self):
         pending = read_json(self.config.pending_marker, default=None)
