@@ -65,9 +65,62 @@ class OTAUpdater:
             return state["version"]
         return self.config.current_version
 
-    def update_available(self, manifest):
-        return is_newer(manifest["version"], self.installed_version())
+    def failed_version(self):
+        failed = read_json(self.config.failed_file, default=None)
 
+        if not failed:
+            return None
+
+        if failed.get("application") != self.config.application:
+            return None
+
+        if failed.get("channel") != self.config.channel:
+            return None
+
+        return failed.get("version")
+
+
+    def mark_version_failed(self, version):
+        state = {
+            "application": self.config.application,
+            "channel": self.config.channel,
+            "version": version,
+        }
+        write_json_atomic(self.config.failed_file, state)
+        self.log("OTA: recorded failed version %s" % version)
+
+
+    def clear_failed_version(self, version=None):
+        failed = read_json(self.config.failed_file, default=None)
+
+        if not failed:
+            return False
+
+        if failed.get("application") != self.config.application:
+            return False
+
+        if failed.get("channel") != self.config.channel:
+            return False
+
+        if version is not None and failed.get("version") != version:
+            return False
+
+        remove_if_exists(self.config.failed_file)
+        self.log("OTA: cleared failed-version record")
+        return True 
+
+    def update_available(self, manifest):
+        candidate = manifest["version"]
+
+        if candidate == self.failed_version():
+            self.log(
+                "OTA: skipping previously failed version %s"
+                % candidate
+            )
+            return False
+
+        return is_newer(candidate, self.installed_version())
+       
     def check_and_install(self):
         manifest = self.fetch_manifest()
 
@@ -117,8 +170,14 @@ class OTAUpdater:
             return False
 
         files = pending.get("files", [])
+        failed_version = pending.get("version")
+
         self.log("OTA: trial boot failed; rolling back")
         self._rollback_files(files)
+
+        if failed_version:
+            self.mark_version_failed(failed_version)
+
         remove_if_exists(self.config.pending_marker)
         return True
 
@@ -138,6 +197,11 @@ class OTAUpdater:
             "channel": pending.get("channel"),
         }
         write_json_atomic(self.config.state_file, state)
+
+        failed = self.failed_version()
+        if failed and failed != state["version"]:
+            self.clear_failed_version()
+
         remove_if_exists(self.config.pending_marker)
         self.log("OTA: boot confirmed; backups removed")
         return True

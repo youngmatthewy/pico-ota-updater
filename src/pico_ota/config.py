@@ -21,6 +21,7 @@ class OTAConfig:
         chunk_size=1024,
         pending_marker=".ota_pending.json",
         state_file=".ota_state.json",
+        failed_file=".ota_failed.json",
     ):
         self.manifest_url = manifest_url
         self.application = application
@@ -33,6 +34,7 @@ class OTAConfig:
         self.chunk_size = int(chunk_size)
         self.pending_marker = pending_marker
         self.state_file = state_file
+        self.failed_file = failed_file
         self.validate()
 
     def validate(self):
