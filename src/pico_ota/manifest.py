@@ -48,7 +48,10 @@ def validate_manifest(manifest):
             raise ManifestError("Duplicate manifest path: %s" % path)
         seen.add(path)
 
-        if not item["url"].startswith(("http://", "https://")):
+        if not (
+            item["url"].startswith("http://") 
+            or item["url"].startswith("https://")
+        ):
             raise ManifestError("Invalid URL for %s" % path)
 
         digest = item["sha256"].lower()

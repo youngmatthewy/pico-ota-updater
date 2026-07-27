@@ -36,8 +36,12 @@ class OTAConfig:
         self.validate()
 
     def validate(self):
-        if not isinstance(self.manifest_url, str) or not self.manifest_url.startswith(
-            ("http://", "https://")
+        if (
+            not isinstance(self.manifest_url, str)
+            or not (
+                self.manifest_url.startswith("http://")
+                or self.manifest_url.startswith("https://")
+            )
         ):
             raise ConfigurationError("manifest_url must be an HTTP or HTTPS URL")
         if not self.application:
