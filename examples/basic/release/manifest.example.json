@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "application": "example-app",
+  "version": "0.2.0",
+  "channel": "stable",
+  "files": [
+    {
+      "path": "main.py",
+      "url": "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_APP_REPOSITORY/deploy/main.py",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "size": 1234
+    }
+  ]
+}

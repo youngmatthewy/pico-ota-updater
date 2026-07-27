@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+secrets.py
+device_config.py
+release/manifest.json
