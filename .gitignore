@@ -7,4 +7,3 @@ build/
 dist/
 secrets.py
 device_config.py
-release/manifest.json
